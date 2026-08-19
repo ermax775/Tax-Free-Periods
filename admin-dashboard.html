@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tax-Free Periods | Admin Dashboard</title>
+    <style>
+      :root {
+        --bg: #fdf8f5;
+        --primary: #4a154b;
+        --accent: #d48b6a;
+        --text: #2d2926;
+        --muted: #6a625f;
+        --card: #ffffff;
+        --border: rgba(74, 21, 75, 0.12);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .shell {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px 20px 72px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+      .title {
+        font-size: clamp(2rem, 3vw, 3rem);
+        font-weight: 800;
+        color: var(--primary);
+      }
+      .actions {
+        display: flex;
+        gap: 12px;
+      }
+      button, .button-link {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
+        background: var(--primary);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .secondary {
+        background: rgba(74, 21, 75, 0.08);
+        color: var(--primary);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin-bottom: 28px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 12px 24px -20px rgba(45, 41, 38, 0.2);
+      }
+      .label {
+        display: block;
+        color: var(--muted);
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      .value {
+        font-size: clamp(2rem, 3vw, 3rem);
+        font-weight: 800;
+        color: var(--primary);
+      }
+      .table-wrap {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th, td {
+        border-bottom: 1px solid var(--border);
+        padding: 12px 14px;
+        text-align: left;
+        vertical-align: top;
+      }
+      th {
+        background: rgba(74, 21, 75, 0.04);
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      td {
+        font-size: 0.95rem;
+      }
+      .error {
+        display: none;
+        margin-top: 14px;
+        color: #8f1d1d;
+        background: rgba(143, 29, 29, 0.08);
+        border: 1px solid rgba(143, 29, 29, 0.15);
+        padding: 12px 14px;
+        border-radius: 10px;
+      }
+      .error.visible { display: block; }
+      @media (max-width: 640px) {
+        .topbar { flex-direction: column; align-items: flex-start; }
+        .actions { width: 100%; }
+        button, .button-link { flex: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <div class="title">Tax-Free Periods Admin</div>
+        <div class="actions">
+          <a class="button-link secondary" href="/">Back to Site</a>
+          <a class="button-link" href="/api/admin/export.csv" id="exportCsvBtn">Export CSV</a>
+        </div>
+      </div>
+
+      <div class="grid" id="summaryGrid">
+        <div class="card">
+          <span class="label">Total Signatures</span>
+          <div class="value" id="totalSignatures">0</div>
+        </div>
+        <div class="card">
+          <span class="label">Regions</span>
+          <div class="value" id="regionCount">0</div>
+        </div>
+        <div class="card">
+          <span class="label">Latest Submission</span>
+          <div class="value" id="lastSignature">—</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Region</th>
+              <th>Submitted</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardBody"></tbody>
+        </table>
+      </div>
+
+      <div class="error" id="errorBox"></div>
+    </div>
+
+    <script>
+      const ADMIN_USERNAME = 'admin@periodtax.com';
+      const ADMIN_PASSWORD = 'ErMax7';
+
+      async function fetchDashboard() {
+        const auth = 'Basic ' + btoa(`${ADMIN_USERNAME}:${ADMIN_PASSWORD}`);
+        const response = await fetch('/api/admin/dashboard', {
+          headers: { Authorization: auth }
+        });
+
+        if (!response.ok) {
+          throw new Error('Admin access was denied.');
+        }
+
+        return response.json();
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        try {
+          return new Date(value).toLocaleString();
+        } catch (error) {
+          return value;
+        }
+      }
+
+      function renderDashboard(data) {
+        const entries = data.recent || [];
+        document.getElementById('totalSignatures').textContent = data.totalSignatures || 0;
+        document.getElementById('regionCount').textContent = Object.keys(data.regionSummary || {}).length;
+        const last = entries[0];
+        document.getElementById('lastSignature').textContent = last ? formatDate(last.submittedAt) : '—';
+
+        const body = document.getElementById('dashboardBody');
+        body.innerHTML = entries.length ? entries.map((entry) => `
+          <tr>
+            <td>${(entry.name || '').replace(/</g, '&lt;')}</td>
+            <td>${(entry.email || '').replace(/</g, '&lt;')}</td>
+            <td>${(entry.region || 'Not specified').replace(/</g, '&lt;')}</td>
+            <td>${formatDate(entry.submittedAt)}</td>
+            <td>${(entry.message || '').replace(/</g, '&lt;').replace(/\n/g, '<br>')}</td>
+          </tr>
+        `).join('') : '<tr><td colspan="5">No signatures yet.</td></tr>';
+      }
+
+      async function init() {
+        try {
+          const data = await fetchDashboard();
+          renderDashboard(data);
+        } catch (error) {
+          const box = document.getElementById('errorBox');
+          box.textContent = error.message;
+          box.classList.add('visible');
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

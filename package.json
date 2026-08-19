@@ -1,0 +1,17 @@
+{
+  "name": "tax-free-periods-campaign",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tax-Free Periods Ethiopia campaign app with persistent petition storage and PDF export.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test server.test.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pdfkit": "^0.15.0"
+  }
+}
