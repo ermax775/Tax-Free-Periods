@@ -1,3 +1,10 @@
 [build]
+  command = "npm install --production"
   publish = "."
-  command = "echo 'Static site ready'"
+
+[functions]
+  directory = "functions"
+
+[context.production.environment]
+  NODE_ENV = "production"
+  BASE_URL = "https://tax-free-period.netlify.app"

@@ -6,8 +6,10 @@ require('dotenv').config();
 
 const DEFAULT_PETITION_FILE = path.join(__dirname, 'data', 'petitions.json');
 const DEFAULT_MEMO_FILE = path.join(__dirname, 'data', 'advocacy-memo.pdf');
-const ADMIN_USERNAME = 'admin@periodtax.com';
-const ADMIN_PASSWORD = 'ErMax7';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin@periodtax.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ErMax7';
+const PETITION_EMAIL = process.env.PETITION_EMAIL || 'gezahegnzerihun118@gmail.com';
+const PETITION_SUBJECT = process.env.PETITION_SUBJECT || 'Tax-Free Periods Petition Signature';
 const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 60;
 const requestHistory = new Map();
@@ -297,6 +299,8 @@ function createApp(options = {}) {
   return app;
 }
 
+const app = createApp();
+
 if (require.main === module) {
   ensureStorageFile(DEFAULT_PETITION_FILE);
   if (!fs.existsSync(DEFAULT_MEMO_FILE)) {
@@ -306,19 +310,18 @@ if (require.main === module) {
   }
 
   const port = Number(process.env.PORT || 3000);
-  const app = createApp();
   app.listen(port, () => {
     console.log(`Tax-Free Periods app listening on http://localhost:${port}`);
   });
 }
 
-module.exports = {
-  createApp,
-  ensureStorageFile,
-  sanitizePetitionPayload,
-  readPetitions,
-  writePetitions,
-  createPetitionRecord,
-  requireAdmin,
-  buildCsv,
-};
+module.exports = app;
+module.exports.default = app;
+module.exports.createApp = createApp;
+module.exports.ensureStorageFile = ensureStorageFile;
+module.exports.sanitizePetitionPayload = sanitizePetitionPayload;
+module.exports.readPetitions = readPetitions;
+module.exports.writePetitions = writePetitions;
+module.exports.createPetitionRecord = createPetitionRecord;
+module.exports.requireAdmin = requireAdmin;
+module.exports.buildCsv = buildCsv;
