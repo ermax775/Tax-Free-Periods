@@ -286,10 +286,10 @@ function createApp(options = {}) {
   });
 
   app.get('/admin', requireAdmin, (_req, res) => {
-    res.sendFile(path.join(__dirname, 'admin-dashboard.html'));
+    res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
   });
 
-  app.use(express.static(__dirname));
+  app.use(express.static(path.join(__dirname, 'public')));
 
   app.use((error, _req, res, _next) => {
     console.error(error);
