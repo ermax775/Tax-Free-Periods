@@ -1,102 +1,192 @@
-const navLinks = document.querySelector('.nav-links');
-const menuButton = document.querySelector('.mobile-toggle');
-const heroTitle = document.querySelector('.hero-title');
-const revealElems = document.querySelectorAll('.reveal');
-const wordFragments = Array.from(document.querySelectorAll('.word-reveal')).map((item) => item.querySelector('span'));
+const PETITION_EMAIL = 'gezahegnzerihun118@gmail.com';
+const PETITION_SUBJECT = 'Tax-Free Periods Petition Signature';
 
-if (menuButton && navLinks) {
-  menuButton.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
+function sanitizeField(value) {
+  return (value || '').trim();
+}
+
+function showToast(message) {
+  const existing = document.getElementById('toast');
+  if (!existing) return;
+
+  existing.textContent = message;
+  existing.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => existing.classList.remove('show'), 2600);
+}
+
+function shareCurrentPage(message = 'Campaign link copied to clipboard.') {
+  const shareUrl = window.location.href;
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => showToast(message))
+      .catch(() => {
+        window.prompt('Copy the campaign link:', shareUrl);
+        showToast('Campaign link ready to copy.');
+      });
+    return;
+  }
+
+  window.prompt('Copy the campaign link:', shareUrl);
+  showToast('Campaign link ready to copy.');
+}
+
+async function submitPetition(formData) {
+  const response = await fetch('/api/petitions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData),
   });
+
+  const result = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || 'Unable to submit the petition.');
+  }
+
+  return result;
 }
 
-if (heroTitle) {
-  setTimeout(() => heroTitle.classList.add('is-visible'), 180);
+function createPetitionRecord(formData) {
+  const name = sanitizeField(formData.name);
+  const email = sanitizeField(formData.email);
+  const region = sanitizeField(formData.region) || 'Not specified';
+  const message = sanitizeField(formData.message) || 'No message provided.';
+
+  const entry = {
+    name,
+    email,
+    region,
+    message,
+    submittedAt: new Date().toISOString(),
+    campaign: 'Tax-Free Periods',
+  };
+
+  const blob = new Blob([JSON.stringify(entry, null, 2)], { type: 'application/json' });
+  const downloadUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = `tax-free-periods-petition-${Date.now()}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(downloadUrl);
+
+  return entry;
 }
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('is-visible');
-    }
-  });
-}, { threshold: 0.18 });
+function buildMailtoLink(formData) {
+  const name = sanitizeField(formData.name);
+  const email = sanitizeField(formData.email);
+  const region = sanitizeField(formData.region) || 'Not specified';
+  const message = sanitizeField(formData.message) || 'No message provided.';
 
-revealElems.forEach((el) => observer.observe(el));
+  const subject = encodeURIComponent(`${PETITION_SUBJECT}: ${name || 'Supporter'}`);
+  const body = encodeURIComponent(
+    'Tax-Free Periods Petition Signature\n\n' +
+    `Name: ${name}\n` +
+    `Email: ${email}\n` +
+    `Region: ${region}\n` +
+    `Reason: ${message}\n\n` +
+    'This signature was submitted through the campaign website.'
+  );
 
-const slider = document.querySelector('#schoolGapSlider');
-const costInput = document.querySelector('#monthlyCost');
-const schoolGapLabel = document.querySelector('#schoolGapLabel');
-const monthlyCostLabel = document.querySelector('#monthlyCostLabel');
-const savedSchools = document.querySelector('#savedSchools');
-const incomeGain = document.querySelector('#incomeGain');
-const taxSavings = document.querySelector('#taxSavings');
-
-const formatCurrency = (value) => `ETB ${value.toLocaleString()}`;
-
-function updateCalculator() {
-  const gapDays = Number(slider?.value || 18);
-  const monthlyCost = Number(costInput?.value || 320);
-
-  if (schoolGapLabel) schoolGapLabel.textContent = `${gapDays} days`;
-  if (monthlyCostLabel) monthlyCostLabel.textContent = `ETB ${monthlyCost}`;
-
-  const schoolDaysRecovered = Math.round((gapDays * 12 * 0.6));
-  const annualSavings = monthlyCost * 12 * (gapDays / 30);
-  const modestIncome = Math.round(annualSavings * 0.42);
-
-  if (savedSchools) savedSchools.textContent = `${schoolDaysRecovered}k+`;
-  if (incomeGain) incomeGain.textContent = formatCurrency(modestIncome);
-  if (taxSavings) taxSavings.textContent = formatCurrency(Math.round(annualSavings));
+  return `mailto:${PETITION_EMAIL}?subject=${subject}&body=${body}`;
 }
 
-if (slider) {
-  slider.addEventListener('input', updateCalculator);
+async function handlePetitionSubmit(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const formData = {
+    name: form.querySelector('#petition-name')?.value || '',
+    email: form.querySelector('#petition-email')?.value || '',
+    region: form.querySelector('#petition-region')?.value || '',
+    message: form.querySelector('#petition-message')?.value || '',
+  };
+
+  const name = sanitizeField(formData.name);
+  const email = sanitizeField(formData.email);
+
+  if (!name || !email || !email.includes('@')) {
+    showToast('Please enter your name and a valid email address.');
+    return;
+  }
+
+  try {
+    const record = createPetitionRecord(formData);
+    const result = await submitPetition(formData);
+    const mailtoUrl = buildMailtoLink(record);
+
+    window.location.href = mailtoUrl;
+    showToast(`Petition submitted successfully. ${result.count} signatures captured.`);
+    form.reset();
+  } catch (error) {
+    showToast(error.message || 'Unable to submit, but a draft is still ready.');
+    const fallback = buildMailtoLink(formData);
+    window.location.href = fallback;
+    form.reset();
+  }
 }
 
-if (costInput) {
-  costInput.addEventListener('input', updateCalculator);
+function attachPetitionHandlers() {
+  const form = document.getElementById('petition-form');
+  if (form) {
+    form.addEventListener('submit', handlePetitionSubmit);
+  }
+
+  const shareCampaignButton = document.getElementById('share-campaign');
+  if (shareCampaignButton) {
+    shareCampaignButton.addEventListener('click', () => shareCurrentPage('Campaign link copied to clipboard.'));
+  }
+
+  const sharePetitionButton = document.getElementById('share-petition-button');
+  if (sharePetitionButton) {
+    sharePetitionButton.addEventListener('click', () => shareCurrentPage('Petition link copied to clipboard.'));
+  }
+
+  const downloadButton = document.getElementById('download-memo-button');
+  if (downloadButton) {
+    downloadButton.addEventListener('click', async () => {
+      const pdfResponse = await fetch('/api/petitions/export.pdf');
+      if (!pdfResponse.ok) {
+        showToast('PDF export is unavailable right now.');
+        return;
+      }
+      const blob = await pdfResponse.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'tax-free-periods-memo.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      showToast('PDF memo exported.');
+    });
+  }
+
+  const downloadHeroMemo = document.getElementById('download-memo');
+  if (downloadHeroMemo) {
+    downloadHeroMemo.addEventListener('click', async () => {
+      const pdfResponse = await fetch('/api/petitions/export.pdf');
+      if (!pdfResponse.ok) {
+        window.location.href = 'advocacy-memo.html';
+        return;
+      }
+      const blob = await pdfResponse.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'tax-free-periods-memo.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    });
+  }
 }
 
-updateCalculator();
-
-const toast = document.querySelector('#toast');
-const showToast = (message) => {
-  if (!toast) return;
-  toast.textContent = message;
-  toast.classList.add('show');
-  clearTimeout(showToast.timeoutId);
-  showToast.timeoutId = setTimeout(() => toast.classList.remove('show'), 2200);
-};
-
-const petitionForm = document.querySelector('#petition-form');
-if (petitionForm) {
-  petitionForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    showToast('Petition signed. Your voice has been recorded.');
-    petitionForm.reset();
-  });
-}
-
-const shareButton = document.querySelector('#share-button');
-if (shareButton) {
-  shareButton.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      showToast('Campaign link copied to clipboard.');
-    } catch (error) {
-      showToast('Share link ready to copy from your browser.');
-    }
-  });
-}
-
-const memoButton = document.querySelector('#memo-button');
-if (memoButton) {
-  memoButton.addEventListener('click', () => {
-    window.open('advocacy-memo.html', '_blank', 'noopener');
-  });
-}
-
-wordFragments.forEach((word, index) => {
-  word.style.transitionDelay = `${(index + 1) * 90}ms`;
+document.addEventListener('DOMContentLoaded', () => {
+  attachPetitionHandlers();
 });

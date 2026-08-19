@@ -1,4 +1,14 @@
-.env
-.DS_Store
 node_modules/
+.env
+.env.*
+!.env.example
+
+coverage/
+.DS_Store
+npm-debug.log*
 *.log
+
+data/*.json
+!data/.gitkeep
+
+tmp-test-data/
