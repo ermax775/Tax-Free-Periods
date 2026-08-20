@@ -137,7 +137,7 @@
         .cta-button {
             transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             display: inline-flex;
-            align_items: center;
+            align-items: center;
             gap: 12px;
             font-size: 1rem;
             font-weight: 600;
@@ -158,6 +158,72 @@
         .cta-button:active {
             transform: translateY(0px) scale(0.98);
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .site-footer {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, #2D2926 0%, #1f1c1a 100%);
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .site-footer::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(212, 139, 106, 0.18), transparent 26%),
+                linear-gradient(135deg, rgba(255,255,255,0.03), transparent 40%, rgba(74,21,75,0.14));
+            pointer-events: none;
+        }
+
+        .footer-content,
+        .footer-bottom {
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-socials {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .footer-socials a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 18px -12px rgba(0,0,0,0.6);
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .footer-socials a:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.14);
+            border-color: rgba(255,255,255,0.22);
+            box-shadow: 0 14px 24px -14px rgba(0,0,0,0.9);
+        }
+
+        .footer-socials svg {
+            width: 1.15rem;
+            height: 1.15rem;
+        }
+
+        @media (max-width: 640px) {
+            .site-footer {
+                padding-top: 4rem;
+                padding-bottom: 2rem;
+            }
+
+            .footer-socials {
+                justify-content: center;
+            }
         }
 
         .reveal-container {
@@ -252,25 +318,23 @@
             opacity: 1;
             transform: translateY(0);
         }
+
+        .form-success {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(212, 139, 106, 0.05);
+            border: 1px solid rgba(212, 139, 106, 0.2);
+            border-radius: 18px;
+        }
+
+        .donation-ref {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--deep-plum);
+        }
     </style>
-<script src="https://felo.ai/js/iframe.js?v=1786972605055"></script>
- <style>
-* {
-  scrollbar-width: thin !important;
-  scrollbar-color: #bfc5ce transparent !important;
-}
-*::-webkit-scrollbar {
-  width: 6px !important;
-}
-*::-webkit-scrollbar-thumb {
-  background-color: #bfc5ce !important;
-  border-radius: 9999px !important;
-}
-*::-webkit-scrollbar-track {
-  background-color: transparent !important;
-  border-radius: 9999px !important;
-}
-</style></head>
+</head>
 <body class="bg-background text-foreground selection:bg-primary/20 selection:text-primary">
     <div class="grain-overlay"></div>
 
@@ -282,11 +346,26 @@
             <a href="#problem" class="nav-link caption-text text-foreground/70 hover:text-primary">The Crisis</a>
             <a href="#story" class="nav-link caption-text text-foreground/70 hover:text-primary">Amina's Story</a>
             <a href="#recommendations" class="nav-link caption-text text-foreground/70 hover:text-primary">Solutions</a>
-            <a href="#action" class="cta-button !py-2 !px-6 !text-sm">Sign Petition</a>
+            <a href="#action" class="nav-link caption-text text-foreground/70 hover:text-primary">Sign Petition</a>
+            <a href="#contact" class="nav-link caption-text text-foreground/70 hover:text-primary">Contact</a>
+            <a href="#donate" class="nav-link caption-text text-foreground/70 hover:text-primary">Donate</a>
+            <a href="/admin" class="nav-link caption-text text-foreground/70 hover:text-primary">Admin</a>
         </div>
-        <button class="lg:hidden text-primary">
+        <button class="lg:hidden text-primary" id="mobile-menu-toggle">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
         </button>
+        <div class="lg:hidden hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg py-4 border-t border-foreground/10" id="mobile-menu">
+            <div class="flex flex-col gap-2 px-6">
+                <a href="#summary" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">Summary</a>
+                <a href="#problem" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">The Crisis</a>
+                <a href="#story" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">Amina's Story</a>
+                <a href="#recommendations" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">Solutions</a>
+                <a href="#action" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">Sign Petition</a>
+                <a href="#contact" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">Contact</a>
+                <a href="#donate" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">Donate</a>
+                <a href="/admin" class="nav-link py-2 caption-text text-foreground/70 hover:text-primary">Admin</a>
+            </div>
+        </div>
     </nav>
 
     <!-- 1. Hero Section -->
@@ -295,7 +374,7 @@
             <img src="https://file.felo.ai/images/s/4h4x2uzMbS.png" alt="Dignified Ethiopian schoolgirl" class="w-full h-full object-cover opacity-40 scale-105" data-parallax="0.15">
             <div class="absolute inset-0 bg-gradient-to-t from-primary via-primary/40 to-transparent"></div>
         </div>
-        
+
         <div class="relative z-10 max-w-5xl text-center text-white">
             <div class="mb-6 animate-enter delay-100">
                 <span class="caption-text text-accent-warm border border-accent-warm/30 px-4 py-1 rounded-full bg-accent-warm/10 backdrop-blur-sm">A Human Rights Initiative</span>
@@ -324,7 +403,7 @@
                 <span class="h-px w-8 bg-white/30"></span>
             </div>
         </div>
-        
+
         <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7-7-7m14-8l-7 7-7-7"></path></svg>
         </div>
@@ -351,7 +430,7 @@
                 <span class="caption-text text-deep-plum block mb-4">The Impact of Inaction</span>
                 <h2 class="section-headline text-primary">The High Cost of Silence</h2>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Feature 1 -->
                 <div class="dossier-page-surface p-10 animate-enter delay-100">
@@ -396,7 +475,7 @@
                 </div>
                 <div class="animate-enter">
                     <span class="caption-text text-accent block mb-4">A Case for Change</span>
-                    <h2 class="section-headline text-primary mb-8">Amina’s Story: A Future on Hold</h2>
+                    <h2 class="section-headline text-primary mb-8">Amina's Story: A Future on Hold</h2>
                     <blockquote class="relative mb-10">
                         <svg class="absolute -top-6 -left-8 w-16 h-16 text-accent/10" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21L14.017 18C14.017 16.8954 14.9124 16 16.017 16H19.017C19.5693 16 20.017 15.5523 20.017 15V9C20.017 8.44772 19.5693 8 19.017 8H16.017C14.9124 8 14.017 7.10457 14.017 6V5C14.017 4.44772 14.4647 4 15.017 4H21.017C21.5693 4 22.017 4.44772 22.017 5V15C22.017 18.3137 19.3307 21 16.017 21H14.017ZM2.017 21L2.017 18C2.017 16.8954 2.91243 16 4.017 16H7.017C7.56928 16 8.017 15.5523 8.017 15V9C8.017 8.44772 7.56928 8 7.017 8H4.017C2.91243 8 2.017 7.10457 2.017 6V5C2.017 4.44772 2.46472 4 3.017 4H9.017C9.56928 4 10.017 4.44772 10.017 5V15C10.017 18.3137 7.33072 21 4.017 21H2.017Z" /></svg>
                         <p class="font-serif italic text-2xl md:text-3xl text-primary leading-tight relative z-10">
@@ -450,7 +529,7 @@
                 <span class="caption-text text-accent-warm block mb-4">The Pathway Forward</span>
                 <h2 class="section-headline !text-white">A Three-Pillar Solution</h2>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
                 <div class="animate-enter delay-100 flex flex-col items-center text-center">
                     <div class="w-20 h-20 rounded-full border border-white/20 flex items-center justify-center mb-8 bg-white/5">
@@ -460,7 +539,7 @@
                     <p class="text-white/70 leading-relaxed">Immediately remove the 15% VAT on all menstrual hygiene products to lower the retail price for consumers.</p>
                     <span class="mt-auto pt-8 text-[10px] uppercase tracking-widest text-accent-warm">Ministry of Finance</span>
                 </div>
-                
+
                 <div class="animate-enter delay-200 flex flex-col items-center text-center">
                     <div class="w-20 h-20 rounded-full border border-white/20 flex items-center justify-center mb-8 bg-white/5">
                         <span class="font-serif text-3xl text-accent-warm">02</span>
@@ -495,7 +574,7 @@
                         The short-term tax revenue loss is significantly outweighed by the long-term economic gains from increased female education and workforce participation. This is not a cost; it is an investment in human capital.
                     </p>
                 </div>
-                
+
                 <div class="space-y-8">
                     <div class="animate-enter delay-200 dossier-page-surface p-8">
                         <div class="flex items-center justify-between mb-2">
@@ -530,7 +609,7 @@
                 <h2 class="section-headline text-primary mb-6">Unlocking Potential</h2>
                 <p class="body-text text-foreground/60 max-w-2xl mx-auto">By aligning our tax code with our human rights commitments, Ethiopia can become a regional leader in gender equity.</p>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 text-left">
                 <div class="animate-enter delay-100 flex gap-6">
                     <div class="flex-shrink-0 w-12 h-12 bg-accent/10 flex items-center justify-center text-accent">
@@ -564,21 +643,21 @@
         </div>
     </section>
 
-    <!-- 11. Lead Form -->
+    <!-- 11. Petition Form -->
     <section id="action" class="py-24 px-6 md:px-12 bg-background">
         <div class="max-w-4xl mx-auto">
             <div class="dossier-page-surface p-12 md:p-20 text-center">
                 <div class="animate-enter">
                     <span class="caption-text text-accent block mb-4">Be Part of the Solution</span>
-                    <h2 class="section-headline text-primary mb-6">Support the Policy Campaign</h2>
+                    <h2 class="section-headline text-primary mb-6">Sign the Petition</h2>
                     <p class="body-text text-foreground/70 mb-12">Add your name to our official advocacy petition. We will deliver these signatures to the Ministry of Finance to show the public demand for tax-free periods.</p>
                 </div>
 
                 <div class="mb-8 text-left animate-enter delay-100">
                     <p class="text-sm leading-relaxed text-foreground/60">By signing, you agree to receive campaign updates and help advance tax-free menstrual dignity for women and girls across Ethiopia.</p>
                 </div>
-                
-                <form id="petition-form" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left animate-enter delay-200" novalidate>
+
+                <form id="petition-form" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left animate-enter delay-200" novalidate method="POST" action="https://formspree.io/f/mzepodkv" enctype="multipart/form-data">
                     <div class="flex flex-col gap-2">
                         <label class="caption-text text-foreground/60" for="petition-name">Full Name</label>
                         <input id="petition-name" name="name" type="text" required class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Enter your name">
@@ -590,30 +669,39 @@
                     <div class="flex flex-col gap-2 md:col-span-2">
                         <label class="caption-text text-foreground/60" for="petition-region">Region in Ethiopia</label>
                         <select id="petition-region" name="region" class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors appearance-none">
-                            <option>Addis Ababa</option>
-                            <option>Amhara</option>
-                            <option>Oromia</option>
-                            <option>Tigray</option>
-                            <option>Sidama</option>
-                            <option>Other</option>
+                            <option value="Addis Ababa">Addis Ababa</option>
+                            <option value="Amhara">Amhara</option>
+                            <option value="Oromia">Oromia</option>
+                            <option value="Tigray">Tigray</option>
+                            <option value="Sidama">Sidama</option>
+                            <option value="Afar">Afar</option>
+                            <option value="Somali">Somali</option>
+                            <option value="SNNPR">SNNPR</option>
+                            <option value="Benishangul-Gumuz">Benishangul-Gumuz</option>
+                            <option value="Dire Dawa">Dire Dawa</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
                     <div class="flex flex-col gap-2 md:col-span-2">
                         <label class="caption-text text-foreground/60" for="petition-message">Why do you support Tax-Free Periods?</label>
-                        <textarea id="petition-message" name="message" rows="3" class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Your voice matters..."></textarea>
+                        <textarea id="petition-message" name="message" rows="3" class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Your voice matters..." maxlength="800"></textarea>
                     </div>
+                    <input type="hidden" name="_subject" value="Tax-Free Periods Petition Signature Received">
+                    <input type="hidden" name="_autoresponse" value="Thank you for signing the Tax-Free Periods petition! Your signature has been recorded and will be delivered to the Ministry of Finance. Expect a confirmation email within 24 hours.">
                     <div class="md:col-span-2 mt-4">
-                        <button type="submit" class="cta-button w-full justify-center">Sign the Petition</button>
+                        <button type="submit" class="cta-button w-full justify-center" id="submit-btn">Sign the Petition</button>
                     </div>
                 </form>
-                
+
+                <div class="mt-6 text-sm text-foreground/60 animate-enter delay-400" id="submit-status"></div>
+
                 <div class="mt-12 flex justify-center gap-8 text-xs text-foreground/40 animate-enter delay-400">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path></svg>
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 001.414 0l4 4a1 1 0 00-1.414 1.414l-2 2z"></path></svg>
                         Signature recorded
                     </div>
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path></svg>
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 001.414 0l4 4a1 1 0 00-1.414 1.414l-2 2z"></path></svg>
                         Policy memo shared
                     </div>
                 </div>
@@ -623,12 +711,112 @@
         </div>
     </section>
 
-    <!-- 12. Closing -->
+    <!-- 12. Contact Form -->
+    <section id="contact" class="py-24 px-6 md:px-12 bg-background">
+        <div class="max-w-4xl mx-auto">
+            <div class="dossier-page-surface p-12 md:p-20 text-center">
+                <div class="animate-enter">
+                    <span class="caption-text text-accent block mb-4">Get in Touch</span>
+                    <h2 class="section-headline text-primary mb-6">Contact Us</h2>
+                    <p class="body-text text-foreground/70 mb-8">Have questions about the campaign or need to submit documentation? Fill out the form below and we'll get back to you promptly.</p>
+                </div>
+
+                <form id="contact-form" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left animate-enter delay-200" novalidate method="POST" action="https://formspree.io/f/mzepodkv" enctype="multipart/form-data">
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60" for="contact-name">Full Name</label>
+                        <input id="contact-name" name="name" type="text" required class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Enter your name">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60" for="contact-email">Email Address</label>
+                        <input id="contact-email" name="email" type="email" required class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="email@example.com">
+                    </div>
+                    <div class="flex flex-col gap-2 md:col-span-2">
+                        <label class="caption-text text-foreground/60" for="contact-subject">Subject</label>
+                        <input id="contact-subject" name="subject" type="text" required class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Brief subject of your message">
+                    </div>
+                    <div class="flex flex-col gap-2 md:col-span-2">
+                        <label class="caption-text text-foreground/60" for="contact-message">Your Message</label>
+                        <textarea id="contact-message" name="message" rows="4" class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Your message..." maxlength="1000"></textarea>
+                    </div>
+                    <div class="flex flex-col gap-2 md:col-span-2">
+                        <label class="caption-text text-foreground/60" for="contact-file">Upload Receipt/Attachment (optional)</label>
+                        <input type="file" id="contact-file" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+                    </div>
+                    <input type="hidden" name="_subject" value="Tax-Free Periods Contact Form Submission">
+                    <input type="hidden" name="_autoresponse" value="Thank you for reaching out to Tax-Free Periods. We have received your message and will respond within 48 hours.">
+                    <div class="md:col-span-2 text-center mt-4">
+                        <button type="submit" class="cta-button w-full justify-center" id="contact-submit-btn">Send Message</button>
+                    </div>
+                </form>
+
+                <div class="mt-6 text-sm text-foreground/60 animate-enter delay-400" id="contact-status"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 13. Donation Form -->
+    <section id="donate" class="py-24 px-6 md:px-12 bg-white">
+        <div class="max-w-4xl mx-auto">
+            <div class="dossier-page-surface p-12 md:p-20 text-center bg-background">
+                <div class="animate-enter">
+                    <span class="caption-text text-accent block mb-4">Support Our Mission</span>
+                    <h2 class="section-headline text-primary mb-6">Make a Donation</h2>
+                    <p class="body-text text-foreground/70 mb-8">Your contribution helps us continue advocating for tax-free periods and supporting affected communities. Your donation is a direct investment in dignity.</p>
+                </div>
+
+                <form id="donation-form" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left animate-enter delay-200" novalidate>
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60" for="donor-name">Full Name</label>
+                        <input id="donor-name" type="text" required class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Enter your name">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60" for="donor-email">Email Address</label>
+                        <input id="donor-email" type="email" required class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="email@example.com">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60" for="donor-amount">Donation Amount (ETB)</label>
+                        <input id="donor-amount" type="number" min="10" step="10" required class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="e.g., 100">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60" for="donor-reference">Reference Number (auto-generated)</label>
+                        <input id="donor-reference" type="text" readonly class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 bg-gray-50 donation-ref" placeholder="Will be generated on submit">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60" for="donor-message">Additional Notes (optional)</label>
+                        <textarea id="donor-message" rows="2" class="bg-foreground/5 border-b border-foreground/10 px-4 py-3 focus:outline-none focus:border-primary transition-colors" placeholder="Message or dedication..."></textarea>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="caption-text text-foreground/60">Upload Transaction Receipt (optional)</label>
+                        <input type="file" id="donor-receipt" name="receipt" accept=".pdf,.jpg,.jpeg,.png">
+                    </div>
+                    <input type="hidden" name="_subject" value="Tax-Free Periods Donation Received">
+                    <div class="md:col-span-2 text-center mt-4">
+                        <button type="submit" class="cta-button w-full justify-center" id="donation-submit-btn">Submit Donation</button>
+                    </div>
+                </form>
+
+                <div class="mt-6 text-sm text-foreground/60 animate-enter delay-400" id="donation-status"></div>
+
+                <div class="mt-8 p-4 bg-accent/10 border border-accent/20 rounded-lg text-left animate-enter delay-400">
+                    <p class="caption-text text-accent mb-2">Bank Transfer Details</p>
+                    <p class="text-foreground/80 text-sm">For bank transfers, please include your reference number after donating.</p>
+                    <div class="mt-2 font-mono text-sm bg-white/50 p-2 rounded">
+                        <p>Account Name: Tax-Free Periods Campaign</p>
+                        <p>Bank: Ethiopian Commercial Bank</p>
+                        <p>Account Number: 1234567890</p>
+                        <p>Sort Code: 001-002-003</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 14. Closing -->
     <section class="py-32 px-6 md:px-12 bg-accent text-white text-center relative overflow-hidden">
         <div class="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
         <div class="max-w-4xl mx-auto relative z-10 animate-enter">
             <h2 class="section-headline !text-white mb-8">Dignity is not a luxury.<br>Education is a right.</h2>
-            <p class="sub-headline mb-12 opacity-90">Let’s end period poverty together and unlock the potential of every girl in Ethiopia.</p>
+            <p class="sub-headline mb-12 opacity-90">Let's end period poverty together and unlock the potential of every girl in Ethiopia.</p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <button id="share-campaign" class="cta-button !bg-primary !text-white" type="button">Share This Campaign</button>
                 <button id="download-memo" class="cta-button !bg-white !text-primary" type="button">Download Advocacy Memo</button>
@@ -638,11 +826,22 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-16 px-6 md:px-12 bg-foreground text-white/50 border-t border-white/5">
-        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+    <footer class="site-footer py-16 px-6 md:px-12 text-white/70">
+        <div class="footer-content max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 md:gap-12">
             <div class="md:col-span-2">
-                <div class="font-serif font-bold text-white text-2xl mb-6">Tax-Free Periods</div>
-                <p class="text-sm leading-relaxed max-w-sm">A policy pathway to dignity, health, and education for women and girls in Ethiopia. Committed to legislative reform and human rights.</p>
+                <div class="font-serif font-bold text-white text-2xl md:text-3xl mb-5">Tax-Free Periods</div>
+                <p class="text-sm md:text-base leading-relaxed max-w-md text-white/75">A policy pathway to dignity, health, and education for women and girls in Ethiopia. Committed to legislative reform and human rights.</p>
+                <div class="footer-socials" aria-label="Social media links">
+                    <a href="https://t.me/Luvkoooookie" target="_blank" rel="noreferrer" aria-label="Telegram">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0C5.347 0 0 5.347 0 11.944c0 6.598 5.347 11.944 11.944 11.944 6.598 0 11.944-5.346 11.944-11.944C23.888 5.347 18.542 0 11.944 0zm5.704 7.296-1.732 8.163c-.13.585-.475.728-.962.454l-2.665-1.963-1.284 1.236c-.142.142-.261.261-.534.261l.19-2.696 4.912-4.433c.214-.19-.047-.295-.332-.105l-6.085 3.832-2.622-.82c-.569-.177-.58-.569.121-.844l10.235-3.947c.47-.171.882.105.729.844z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/jerry_kookie?igsh=MWhmbGx4emZvYzF3cg==&igsi=MWhmbGx4emZvYzF3cg==" target="_blank" rel="noreferrer" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <a href="https://www.facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook">
+                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.397 20.997v-8.196h2.765l.414-3.209h-3.179V7.548c0-.93.258-1.562 1.587-1.562h1.698V2.869c-.293-.039-1.3-.126-2.473-.126-2.446 0-4.119 1.492-4.119 4.232v2.361H7.332v3.209h2.78v8.196h3.285z"/></svg>
+                    </a>
+                </div>
             </div>
             <div>
                 <h5 class="caption-text text-white mb-6">Campaign</h5>
@@ -654,22 +853,27 @@
                 </ul>
             </div>
             <div>
+                <h5 class="caption-text text-white mb-6">Get Involved</h5>
+                <ul class="space-y-4 text-sm">
+                    <li><a href="#action" class="hover:text-white transition-colors">Sign the Petition</a></li>
+                    <li><a href="#donate" class="hover:text-white transition-colors">Donate</a></li>
+                    <li><a href="#contact" class="hover:text-white transition-colors">Contact Us</a></li>
+                    <li><a href="/admin" class="hover:text-white transition-colors">Admin Dashboard</a></li>
+                </ul>
+            </div>
+            <div>
                 <h5 class="caption-text text-white mb-6">Contact</h5>
                 <ul class="space-y-4 text-sm">
                     <li><a href="mailto:info@taxfreeperiods.et" class="hover:text-white transition-colors">info@taxfreeperiods.et</a></li>
                     <li>Addis Ababa, Ethiopia</li>
-                    <li class="flex gap-4 mt-6">
-                        <a href="#" class="hover:text-white"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
-                        <a href="#" class="hover:text-white"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
-                    </li>
                 </ul>
             </div>
         </div>
-        <div class="max-w-6xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:row justify-between items-center text-xs">
-            <p>© <span id="copyright-year"></span> Tax-Free Periods Campaign. All rights reserved.</p>
+        <div class="footer-bottom max-w-6xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-white/60">
+            <p>&copy; <span id="copyright-year"></span> Tax-Free Periods Campaign. All rights reserved.</p>
             <div class="flex gap-6 mt-4 md:mt-0">
-                <a href="#" class="hover:text-white">Privacy Policy</a>
-                <a href="#" class="hover:text-white">Terms of Use</a>
+                <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition-colors">Terms of Use</a>
             </div>
         </div>
     </footer>
@@ -698,21 +902,21 @@
                 });
             }, revealOptions);
 
-            document.querySelectorAll('.animate-enter, .reveal-container').forEach(el => {
+            document.querySelectorAll('.animate-enter, .reveal-container').forEach((el) => {
                 observer.observe(el);
             });
 
             // Simple Parallax Effect
             window.addEventListener('scroll', () => {
                 const scrolled = window.pageYOffset;
-                document.querySelectorAll('[data-parallax]').forEach(el => {
+                document.querySelectorAll('[data-parallax]').forEach((el) => {
                     const speed = el.getAttribute('data-parallax');
-                    el.style.transform = `translateY(${scrolled * speed}px)`;
+                    el.style.transform = `translateY(${scrolled * Number(speed)}px)`;
                 });
             });
 
             // Smooth Anchor Scrolling
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
                     const target = document.querySelector(this.getAttribute('href'));
@@ -721,6 +925,15 @@
                     }
                 });
             });
+
+            // Mobile Menu Toggle
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenuToggle && mobileMenu) {
+                mobileMenuToggle.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
         });
     </script>
 </body>
