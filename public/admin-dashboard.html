@@ -22,7 +22,7 @@
         color: var(--text);
       }
       .shell {
-        max-width: 1100px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 48px 20px 72px;
       }
@@ -32,6 +32,7 @@
         align-items: center;
         gap: 16px;
         margin-bottom: 28px;
+        flex-wrap: wrap;
       }
       .title {
         font-size: clamp(2rem, 3vw, 3rem);
@@ -41,6 +42,7 @@
       .actions {
         display: flex;
         gap: 12px;
+        flex-wrap: wrap;
       }
       button, .button-link {
         border: 0;
@@ -61,7 +63,7 @@
       }
       .grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 18px;
         margin-bottom: 28px;
       }
@@ -85,11 +87,20 @@
         font-weight: 800;
         color: var(--primary);
       }
+      .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 32px 0 16px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 8px;
+      }
       .table-wrap {
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 18px;
         overflow: hidden;
+        margin-bottom: 28px;
       }
       table {
         width: 100%;
@@ -121,6 +132,28 @@
         border-radius: 10px;
       }
       .error.visible { display: block; }
+      .tab-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+      .tab {
+        padding: 0.6rem 1.2rem;
+        border-radius: 10px;
+        background: rgba(74, 21, 75, 0.06);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--primary);
+      }
+      .tab.active {
+        background: var(--primary);
+        color: white;
+      }
+      .tab-content { display: none; }
+      .tab-content.active { display: block; }
       @media (max-width: 640px) {
         .topbar { flex-direction: column; align-items: flex-start; }
         .actions { width: 100%; }
@@ -134,7 +167,10 @@
         <div class="title">Tax-Free Periods Admin</div>
         <div class="actions">
           <a class="button-link secondary" href="/">Back to Site</a>
-          <a class="button-link" href="/api/admin/export.csv" id="exportCsvBtn">Export CSV</a>
+          <a class="button-link" href="/api/admin/export.csv">Export Signatures (CSV)</a>
+          <a class="button-link" href="/api/admin/donations/export.csv">Export Donations (CSV)</a>
+          <a class="button-link" href="/api/admin/contacts/export.csv">Export Contacts (CSV)</a>
+          <a class="button-link" href="/api/admin/petitions/export.json">Export JSON</a>
         </div>
       </div>
 
@@ -144,28 +180,74 @@
           <div class="value" id="totalSignatures">0</div>
         </div>
         <div class="card">
-          <span class="label">Regions</span>
-          <div class="value" id="regionCount">0</div>
+          <span class="label">Total Donations</span>
+          <div class="value" id="totalDonations">0</div>
         </div>
         <div class="card">
-          <span class="label">Latest Submission</span>
-          <div class="value" id="lastSignature">—</div>
+          <span class="label">Donation Amount</span>
+          <div class="value" id="totalDonationAmount">0 ETB</div>
+        </div>
+        <div class="card">
+          <span class="label">Total Contacts</span>
+          <div class="value" id="totalContacts">0</div>
         </div>
       </div>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Region</th>
-              <th>Submitted</th>
-              <th>Message</th>
-            </tr>
-          </thead>
-          <tbody id="dashboardBody"></tbody>
-        </table>
+      <div class="tab-bar">
+        <div class="tab active" data-tab="signatures">Signatures</div>
+        <div class="tab" data-tab="donations">Donations</div>
+        <div class="tab" data-tab="contacts">Contacts</div>
+      </div>
+
+      <div class="tab-content active" id="tab-signatures">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Region</th>
+                <th>Submitted</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody id="signaturesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-donations">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Email</th>
+                <th>Amount</th>
+                <th>Reference</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="donationsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-content" id="tab-contacts">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Subject</th>
+                <th>Submitted</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody id="contactsBody"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="error" id="errorBox"></div>
@@ -198,14 +280,14 @@
       }
 
       function renderDashboard(data) {
-        const entries = data.recent || [];
         document.getElementById('totalSignatures').textContent = data.totalSignatures || 0;
-        document.getElementById('regionCount').textContent = Object.keys(data.regionSummary || {}).length;
-        const last = entries[0];
-        document.getElementById('lastSignature').textContent = last ? formatDate(last.submittedAt) : '—';
+        document.getElementById('totalDonations').textContent = data.totalDonations || 0;
+        document.getElementById('totalDonationAmount').textContent = (data.totalDonationAmount || 0).toLocaleString() + ' ETB';
+        document.getElementById('totalContacts').textContent = data.totalContacts || 0;
 
-        const body = document.getElementById('dashboardBody');
-        body.innerHTML = entries.length ? entries.map((entry) => `
+        const sigBody = document.getElementById('signaturesBody');
+        const sigEntries = data.recent || [];
+        sigBody.innerHTML = sigEntries.length ? sigEntries.map((entry) => `
           <tr>
             <td>${(entry.name || '').replace(/</g, '&lt;')}</td>
             <td>${(entry.email || '').replace(/</g, '&lt;')}</td>
@@ -214,9 +296,51 @@
             <td>${(entry.message || '').replace(/</g, '&lt;').replace(/\n/g, '<br>')}</td>
           </tr>
         `).join('') : '<tr><td colspan="5">No signatures yet.</td></tr>';
+
+        const donBody = document.getElementById('donationsBody');
+        const donEntries = data.recentDonations || [];
+        donBody.innerHTML = donEntries.length ? donEntries.map((entry) => `
+          <tr>
+            <td>${(entry.name || '').replace(/</g, '&lt;')}</td>
+            <td>${(entry.email || '').replace(/</g, '&lt;')}</td>
+            <td>${(entry.amount || 0).toLocaleString()} ETB</td>
+            <td>${(entry.referenceNumber || '—').replace(/</g, '&lt;')}</td>
+            <td>${formatDate(entry.submittedAt)}</td>
+          </tr>
+        `).join('') : '<tr><td colspan="5">No donations yet.</td></tr>';
+
+        const conBody = document.getElementById('contactsBody');
+        const conEntries = data.recentContacts || [];
+        conBody.innerHTML = conEntries.length ? conEntries.map((entry) => `
+          <tr>
+            <td>${(entry.name || '').replace(/</g, '&lt;')}</td>
+            <td>${(entry.email || '').replace(/</g, '&lt;')}</td>
+            <td>${(entry.subject || '—').replace(/</g, '&lt;')}</td>
+            <td>${formatDate(entry.submittedAt)}</td>
+            <td>${(entry.message || '').replace(/</g, '&lt;').replace(/\n/g, '<br>')}</td>
+          </tr>
+        `).join('') : '<tr><td colspan="5">No contacts yet.</td></tr>';
+      }
+
+      function setupTabs() {
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+              content.classList.remove('active');
+            });
+
+            const tabId = tab.getAttribute('data-tab');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+          });
+        });
       }
 
       async function init() {
+        setupTabs();
         try {
           const data = await fetchDashboard();
           renderDashboard(data);

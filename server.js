@@ -5,6 +5,8 @@ const PDFDocument = require('pdfkit');
 require('dotenv').config();
 
 const DEFAULT_PETITION_FILE = path.join(__dirname, 'data', 'petitions.json');
+const DEFAULT_DONATION_FILE = path.join(__dirname, 'data', 'donations.json');
+const DEFAULT_CONTACT_FILE = path.join(__dirname, 'data', 'contacts.json');
 const DEFAULT_MEMO_FILE = path.join(__dirname, 'data', 'advocacy-memo.pdf');
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin@periodtax.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'ErMax7';
@@ -14,7 +16,7 @@ const WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 60;
 const requestHistory = new Map();
 
-function ensureStorageFile(filePath = DEFAULT_PETITION_FILE, defaultContents = '[]') {
+function ensureStorageFile(filePath, defaultContents = '[]') {
   const directory = path.dirname(filePath);
   fs.mkdirSync(directory, { recursive: true });
 
@@ -39,6 +41,42 @@ function readPetitions(filePath = DEFAULT_PETITION_FILE) {
 }
 
 function writePetitions(entries, filePath = DEFAULT_PETITION_FILE) {
+  ensureStorageFile(filePath);
+  fs.writeFileSync(filePath, JSON.stringify(entries, null, 2), 'utf8');
+}
+
+function readDonations(filePath = DEFAULT_DONATION_FILE) {
+  ensureStorageFile(filePath);
+
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8').trim();
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function writeDonations(entries, filePath = DEFAULT_DONATION_FILE) {
+  ensureStorageFile(filePath);
+  fs.writeFileSync(filePath, JSON.stringify(entries, null, 2), 'utf8');
+}
+
+function readContacts(filePath = DEFAULT_CONTACT_FILE) {
+  ensureStorageFile(filePath);
+
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8').trim();
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (_error) {
+    return [];
+  }
+}
+
+function writeContacts(entries, filePath = DEFAULT_CONTACT_FILE) {
   ensureStorageFile(filePath);
   fs.writeFileSync(filePath, JSON.stringify(entries, null, 2), 'utf8');
 }
@@ -252,6 +290,93 @@ function createApp(options = {}) {
     }
   });
 
+  app.post('/api/donations', (req, res) => {
+    try {
+      const { name, email, amount, referenceNumber, message } = req.body || {};
+
+      if (!name || !email || !email.includes('@') || !amount) {
+        return res.status(400).json({
+          success: false,
+          error: 'Name, valid email, and donation amount are required.',
+        });
+      }
+
+      const record = {
+        name: sanitizeField(name),
+        email: sanitizeField(email).toLowerCase(),
+        amount: parseFloat(amount) || 0,
+        referenceNumber: referenceNumber || `TFP-${Date.now()}`,
+        message: sanitizeField(message) || 'No message provided.',
+        submittedAt: new Date().toISOString(),
+        campaign: 'Tax-Free Periods',
+        type: 'donation',
+      };
+
+      const entries = readDonations();
+      entries.push(record);
+      writeDonations(entries);
+
+      res.status(201).json({
+        success: true,
+        donation: record,
+        count: entries.length,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  app.post('/api/contacts', (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body || {};
+
+      if (!name || !email || !email.includes('@') || !subject) {
+        return res.status(400).json({
+          success: false,
+          error: 'Name, valid email, and subject are required.',
+        });
+      }
+
+      const record = {
+        name: sanitizeField(name),
+        email: sanitizeField(email).toLowerCase(),
+        subject: sanitizeField(subject),
+        message: sanitizeField(message) || 'No message provided.',
+        submittedAt: new Date().toISOString(),
+        campaign: 'Tax-Free Periods',
+        type: 'contact',
+      };
+
+      const entries = readContacts();
+      entries.push(record);
+      writeContacts(entries);
+
+      res.status(201).json({
+        success: true,
+        contact: record,
+        count: entries.length,
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  app.get('/api/donations', (_req, res) => {
+    const donations = readDonations();
+    res.json({ donations, count: donations.length });
+  });
+
+  app.get('/api/contacts', (_req, res) => {
+    const contacts = readContacts();
+    res.json({ contacts, count: contacts.length });
+  });
+
   app.get('/api/petitions/export.pdf', (_req, res) => {
     const petitions = readPetitions(petitionFile);
     res.setHeader('Content-Type', 'application/pdf');
@@ -263,18 +388,61 @@ function createApp(options = {}) {
     doc.end();
   });
 
-  app.get('/api/admin/dashboard', requireAdmin, (_req, res) => {
+  function buildDonationCsv(entries) {
+  const rows = [['Donor Name', 'Email', 'Amount (ETB)', 'Reference Number', 'Message', 'Submitted At']];
+
+  entries.forEach((entry) => {
+    rows.push([
+      entry.name || '',
+      entry.email || '',
+      entry.amount || '',
+      entry.referenceNumber || '',
+      (entry.message || '').replace(/\n/g, ' '),
+      entry.submittedAt || '',
+    ]);
+  });
+
+  return rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+}
+
+function buildContactCsv(entries) {
+  const rows = [['Name', 'Email', 'Subject', 'Message', 'Submitted At']];
+
+  entries.forEach((entry) => {
+    rows.push([
+      entry.name || '',
+      entry.email || '',
+      entry.subject || '',
+      (entry.message || '').replace(/\n/g, ' '),
+      entry.submittedAt || '',
+    ]);
+  });
+
+  return rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(',')).join('\n');
+}
+
+app.get('/api/admin/dashboard', requireAdmin, (_req, res) => {
     const petitions = readPetitions(petitionFile);
+    const donations = readDonations();
+    const contacts = readContacts();
+
     const regionSummary = petitions.reduce((acc, entry) => {
       const region = entry.region || 'Not specified';
       acc[region] = (acc[region] || 0) + 1;
       return acc;
     }, {});
 
+    const totalDonationAmount = donations.reduce((sum, entry) => sum + (entry.amount || 0), 0);
+
     res.json({
       totalSignatures: petitions.length,
+      totalDonations: donations.length,
+      totalDonationAmount,
+      totalContacts: contacts.length,
       regionSummary,
       recent: petitions.slice(-5).reverse(),
+      recentDonations: donations.slice(-5).reverse(),
+      recentContacts: contacts.slice(-5).reverse(),
     });
   });
 
@@ -283,6 +451,41 @@ function createApp(options = {}) {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="tax-free-periods-signatures.csv"');
     res.send(buildCsv(petitions));
+  });
+
+  app.get('/api/admin/donations/export.csv', requireAdmin, (_req, res) => {
+    const donations = readDonations();
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="tax-free-periods-donations.csv"');
+    res.send(buildDonationCsv(donations));
+  });
+
+  app.get('/api/admin/contacts/export.csv', requireAdmin, (_req, res) => {
+    const contacts = readContacts();
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="tax-free-periods-contacts.csv"');
+    res.send(buildContactCsv(contacts));
+  });
+
+  app.get('/api/admin/petitions/export.json', requireAdmin, (_req, res) => {
+    const petitions = readPetitions(petitionFile);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="tax-free-periods-petitions.json"');
+    res.send(JSON.stringify(petitions, null, 2));
+  });
+
+  app.get('/api/admin/donations/export.json', requireAdmin, (_req, res) => {
+    const donations = readDonations();
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="tax-free-periods-donations.json"');
+    res.send(JSON.stringify(donations, null, 2));
+  });
+
+  app.get('/api/admin/contacts/export.json', requireAdmin, (_req, res) => {
+    const contacts = readContacts();
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename="tax-free-periods-contacts.json"');
+    res.send(JSON.stringify(contacts, null, 2));
   });
 
   app.get('/admin', requireAdmin, (_req, res) => {
